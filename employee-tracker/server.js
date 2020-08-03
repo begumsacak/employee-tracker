@@ -60,6 +60,16 @@ function manageEmployees() {
             }
         });
 }
+
+// Validate: (Function) Receive the user input and answers hash. Should return true if the value is valid, and an error message (String) otherwise. If false is returned, a default error message is provided.
+function validateAnswer (input) {
+    if (input === '') {
+        return "please enter a valid reply"
+    } else
+    return true
+};
+
+
 function viewEmployee() {
     connection.query("SELECT * FROM employee", (err, results) => {
         console.table(results)
@@ -74,21 +84,25 @@ function addEmployee() {
                 name: "firstName",
                 message: "What is your first name?",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "lastName",
                 message: "What is your last name?",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "roleID",
                 message: "What is your role ID?",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "managerID",
                 message: "What is your manager ID?",
                 type: "input"
+                validate: validateAnswer
             },
         ])
         //The placeholders can be replaced with the input
@@ -96,11 +110,16 @@ function addEmployee() {
         // 
         .then((answer) => {
             connection.query("INSERT into employee(first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.firstName, answer.lastName, answer.roleID, answer.managerID], (err) => {
-                console.log("New employee has been added")
-                manageEmployees()
-            })
+                console.log("New employee has been added"),
+                    function (err) {
+                        if (err) throw err;
+                        manageEmployees();
+                    }
+            });
         })
 }
+
+//function updateEmployee
 
 function addRole() {
     inquirer
@@ -109,31 +128,61 @@ function addRole() {
                 name: "newTitle",
                 message: "Enter new title",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "newSalary",
                 message: "What is the salary for this role?",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "newRoleId",
                 message: "What is the role ID?",
                 type: "input"
+                validate: validateAnswer
             },
             {
                 name: "newManagerID",
                 message: "What is the manager ID for this role?",
                 type: "input"
+                validate: validateAnswer
             },
         ])
         .then((answer) => {
-            connection.query("INSERT into role (title, salary, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.newTitle, answer.newSalary, answer.newRoleId, answer.newManagerID], (err) => {
+            connection.query("INSERT into role (title, salary, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.newTitle, parseInt(answer.newSalary), answer.newRoleId, answer.newManagerID], (err) => {
                 console.log("New employee role has been added"),
                     function (err) {
                         if (err) throw err;
                         manageEmployees();
                     }
-            })
+            });
         })
+}
+
+
+function addDepartment() {
+    inquirer.prompt([
+        {
+            name: "newDepartment",
+            massage: "Enter new department name",
+            type: "input",
+            validate: validateAnswer
+        }
+    ]).then(answer => {
+        connection.query("INSERT INTO department (name) VALUES (?)",
+            [answer.newDepartment],
+            function (err) {
+                if (err) throw err;
+                manageEmployees();
+            });
+    })
+}
+
+function viewDepartment() {
+    connection.query("SELECT * FROM department", (err, results) => {
+        console.table(results)
+        manageEmployees();
+    })
 }
 
