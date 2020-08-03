@@ -61,7 +61,7 @@ function manageEmployees() {
         });
 }
 function viewEmployee() {
-    connection.query("SELECT * FROM employee", (err, results) =>{
+    connection.query("SELECT * FROM employee", (err, results) => {
         console.table(results)
         manageEmployees();
     })
@@ -93,10 +93,47 @@ function addEmployee() {
         ])
         //The placeholders can be replaced with the input
         //Double question marks: table names or column names
+        // 
         .then((answer) => {
-            connection.query("INSERT into employee(first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.firstName, answer.lastName, answer.roleID, answer.managerID], (err)=> {
-               console.log("New employee has been added")
-               manageEmployees()
-            } )
+            connection.query("INSERT into employee(first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.firstName, answer.lastName, answer.roleID, answer.managerID], (err) => {
+                console.log("New employee has been added")
+                manageEmployees()
+            })
         })
 }
+
+function addRole() {
+    inquirer
+        .prompt([
+            {
+                name: "newTitle",
+                message: "Enter new title",
+                type: "input"
+            },
+            {
+                name: "newSalary",
+                message: "What is the salary for this role?",
+                type: "input"
+            },
+            {
+                name: "newRoleId",
+                message: "What is the role ID?",
+                type: "input"
+            },
+            {
+                name: "newManagerID",
+                message: "What is the manager ID for this role?",
+                type: "input"
+            },
+        ])
+        .then((answer) => {
+            connection.query("INSERT into role (title, salary, role_id, manager_id) VALUES (?, ?, ?, ?)", [answer.newTitle, answer.newSalary, answer.newRoleId, answer.newManagerID], (err) => {
+                console.log("New employee role has been added"),
+                    function (err) {
+                        if (err) throw err;
+                        manageEmployees();
+                    }
+            })
+        })
+}
+
