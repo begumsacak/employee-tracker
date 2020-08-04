@@ -1,3 +1,4 @@
+
 const inquirer = require('inquirer');
 const consoleTable = require('console.table');
 const mysql = require("mysql");
@@ -15,7 +16,7 @@ connection.connect(function (err) {
     console.log("connected as id " + connection.threadId);
     manageEmployees();
 });
-
+// Credit to Phil Loy for code help
 function manageEmployees() {
     inquirer
         .prompt([
@@ -61,13 +62,7 @@ function manageEmployees() {
         });
 }
 
-// Validate: (Function) Receive the user input and answers hash. Should return true if the value is valid, and an error message (String) otherwise. If false is returned, a default error message is provided.
-function validateAnswer (input) {
-    if (input === '') {
-        return "please enter a valid reply"
-    } else
-    return true
-};
+
 
 
 function viewEmployee() {
@@ -84,25 +79,21 @@ function addEmployee() {
                 name: "firstName",
                 message: "What is your first name?",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "lastName",
                 message: "What is your last name?",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "roleID",
                 message: "What is your role ID?",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "managerID",
                 message: "What is your manager ID?",
                 type: "input"
-                validate: validateAnswer
             },
         ])
         //The placeholders can be replaced with the input
@@ -120,6 +111,51 @@ function addEmployee() {
 }
 
 //function updateEmployee
+// concat() function https://www.w3schools.com/sql/func_mysql_concat.asp
+function updateEmployee() {
+    connection.query("SELECT id, concat(first_name, ' ', last_name) AS fullName FROM employee", function (err, employeeName) {
+        connection.query("SELECT * FROM role", function (err, roleId) {
+            if (err) throw err;
+            var employeeArray = employeeName.map(employee => employee.id + " " + employee.fullName);
+            var roleArray = [];
+
+            for (var i = 0; i < employeeName.length; i++) {
+                employeeArray.push(`${employeeName[i].first_name}`);
+            }
+
+            for (var i = 0; i < roleId.length; i++) {
+                roleArray.push(`${roleId[i].id}`);
+            }
+
+            inquirer.prompt([
+                {
+                    name: "name",
+                    type: "list",
+                    message: "Select the name of employee to update",
+                    choices: employeeArray
+                },
+                {
+                    name: "roleId",
+                    type: "list",
+                    message: "What role you want to give to this employee?",
+                    choices: roleArray
+                }
+            ]).then(function (answer) {
+                connection.query("UPDATE employee SET ? WHERE ?",
+                    [{ role_id: answer.roleId },
+                    {
+                        id: answer.employeeName
+                    }], function (err) {
+                        if (err) throw err;
+                        console.table("Employee role is now updated");
+                        manageEmployees();
+                    });
+            });
+
+
+        });
+    });
+};
 
 function addRole() {
     inquirer
@@ -128,25 +164,21 @@ function addRole() {
                 name: "newTitle",
                 message: "Enter new title",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "newSalary",
                 message: "What is the salary for this role?",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "newRoleId",
                 message: "What is the role ID?",
                 type: "input"
-                validate: validateAnswer
             },
             {
                 name: "newManagerID",
                 message: "What is the manager ID for this role?",
                 type: "input"
-                validate: validateAnswer
             },
         ])
         .then((answer) => {
@@ -167,7 +199,6 @@ function addDepartment() {
             name: "newDepartment",
             massage: "Enter new department name",
             type: "input",
-            validate: validateAnswer
         }
     ]).then(answer => {
         connection.query("INSERT INTO department (name) VALUES (?)",
@@ -185,4 +216,3 @@ function viewDepartment() {
         manageEmployees();
     })
 }
-
